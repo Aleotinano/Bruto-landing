@@ -1,0 +1,31 @@
+---
+import VideoCard from "./VideoCard.astro";
+import { beforeAfter } from "../content/site";
+---
+
+{beforeAfter.length > 0 && (
+  <section id="antes-y-despues" class="border-b border-line py-20">
+    <div class="container-page">
+      <p class="eyebrow">Antes y después</p>
+      <h2 class="section-title mt-2">Del material en bruto al video publicado</h2>
+      <p class="section-lead">A la izquierda, lo que nos mandaron. A la derecha, lo que salió.</p>
+      <div class="mt-10 grid gap-8 md:grid-cols-2">
+        {beforeAfter.map((pair, i) => (
+          <article>
+            <h3 class="font-medium">{pair.title}</h3>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <p class="mb-2 text-sm text-ink-500">Antes</p>
+                <VideoCard item={pair.before} tone={i} />
+              </div>
+              <div>
+                <p class="mb-2 text-sm font-medium text-brand-600">Después</p>
+                <VideoCard item={pair.after} tone={i + 1} />
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

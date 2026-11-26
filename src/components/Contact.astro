@@ -1,0 +1,18 @@
+---
+import Icon from "./Icon.astro";
+import { contact } from "../content/site";
+import { whatsappUrl } from "../lib/whatsapp";
+---
+
+<!-- Cierre: el mismo y único llamado a la acción de toda la página. -->
+<section id="contacto" class="py-20">
+  <div class="container-page">
+    <div class="rounded-2xl bg-ink-950 px-6 py-14 text-center text-surface-900 sm:px-12">
+      <h2 class="section-title">{contact.title}</h2>
+      <p class="mx-auto mt-4 max-w-xl text-ink-300">{contact.lead}</p>
+      <a href={whatsappUrl()} class="btn-primary mt-8 px-6 py-3.5" target="_blank" rel="noopener">
+        <Icon name="whatsapp" /> Escribinos por WhatsApp
+      </a>
+    </div>
+  </div>
+</section>

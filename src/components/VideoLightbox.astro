@@ -1,0 +1,101 @@
+---
+import Icon from "./Icon.astro";
+---
+
+<!-- Una sola vez por página (index.astro). Lo abre cualquier botón con data-lightbox-src
+     (las tarjetas de VideoCard que tienen video): la edición se juzga con sonido. -->
+<dialog
+  data-video-lightbox
+  aria-label="Video"
+  class="m-0 size-full max-h-none max-w-none items-center justify-center bg-transparent p-4 backdrop:bg-black/85 open:flex"
+>
+  <video class="lightbox-video rounded-xl bg-player object-contain" controls playsinline preload="none"></video>
+  <button
+    type="button"
+    data-lightbox-close
+    aria-label="Cerrar video"
+    class="absolute top-3 right-3 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white sm:top-5 sm:right-5"
+  >
+    <Icon name="x" class="size-6" />
+  </button>
+</dialog>
+
+<style>
+  /* Vertical 9:16: tan alto como entre (hasta 90 % de la pantalla) sin pasarse del ancho. */
+  .lightbox-video {
+    aspect-ratio: 9 / 16;
+    height: min(90svh, calc((100vw - 2rem) * 16 / 9));
+    width: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    dialog[open] .lightbox-video {
+      animation: lightbox-in 0.2s ease-out;
+    }
+    dialog[open]::backdrop {
+      animation: lightbox-fade 0.2s ease-out;
+    }
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+  @keyframes lightbox-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* Mientras está abierto, la página de atrás no scrollea (así ningún video de la grilla entra
+     o sale de pantalla por debajo). */
+  :global(html:has(dialog[data-video-lightbox][open])) {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("dialog[data-video-lightbox]");
+  const video = dialog?.querySelector("video");
+  let opener: HTMLElement | null = null;
+
+  if (dialog && video) {
+    document.addEventListener("click", (e) => {
+      const trigger = (e.target as Element | null)?.closest<HTMLElement>("[data-lightbox-src]");
+      if (!trigger?.dataset.lightboxSrc) return;
+      opener = trigger;
+
+      // Los de la grilla se callan mientras tanto; el script de index.astro no los arranca con
+      // el diálogo abierto y los retoma solo al cerrarlo.
+      document.querySelectorAll<HTMLVideoElement>("video[data-inview-play]").forEach((v) => v.pause());
+
+      video.src = trigger.dataset.lightboxSrc;
+      if (trigger.dataset.lightboxPoster) video.poster = trigger.dataset.lightboxPoster;
+      else video.removeAttribute("poster");
+      dialog.setAttribute("aria-label", trigger.dataset.lightboxTitle ?? "Video");
+      dialog.showModal();
+      video.muted = false;
+      video.play().catch(() => {});
+    });
+
+    dialog.querySelector("[data-lightbox-close]")?.addEventListener("click", () => dialog.close());
+
+    // El diálogo ocupa toda la pantalla: un clic que no cae en el video ni en el botón es "afuera".
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    // Cubre los tres caminos (botón, Escape, clic afuera): corta la reproducción y la descarga.
+    dialog.addEventListener("close", () => {
+      video.pause();
+      video.removeAttribute("src");
+      video.removeAttribute("poster");
+      video.load();
+      opener?.focus();
+      opener = null;
+      document.dispatchEvent(new Event("videolightbox:close"));
+    });
+  }
+</script>

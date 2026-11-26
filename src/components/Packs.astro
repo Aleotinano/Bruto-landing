@@ -1,0 +1,149 @@
+---
+import Icon from "./Icon.astro";
+import { currency, packs, packsNote } from "../content/site";
+import { whatsappUrl } from "../lib/whatsapp";
+
+const money = (n: number) => `${currency} ${Math.round(n).toLocaleString("es-AR")}`;
+
+// El precio de lista es el del video más caro (el pack más chico). Cada pack muestra cuánto ahorra
+// contra ese precio: es el descuento por cantidad. Nada se calcula a mano: sale de `packs`.
+const sorted = [...packs].sort((a, b) => a.videos - b.videos);
+const listPrice = Math.max(...sorted.map((p) => p.price / p.videos));
+const withSavings = packs.map((p) => {
+  const full = p.videos * listPrice;
+  return { ...p, perVideo: p.price / p.videos, full, saved: full - p.price, pct: Math.round((1 - p.price / full) * 100) };
+});
+
+// El selector: de 5 a 90 videos por mes. Debajo del pack más chico se cobra el precio de lista; desde
+// cada pack, su precio por video. Los escalones del cabezal salen de los mismos packs.
+const MIN = 5;
+const MAX = 90;
+const start = sorted.find((p) => p.featured)?.videos ?? sorted[0].videos;
+const tiers = [
+  { from: MIN, name: "A medida", perVideo: listPrice },
+  ...sorted.map((p) => ({ from: p.videos, name: p.name, perVideo: p.price / p.videos })),
+];
+const segments = tiers.map((t, i) => {
+  const to = tiers[i + 1]?.from ?? MAX;
+  const pct = Math.round((1 - t.perVideo / listPrice) * 100);
+  return { ...t, width: to - t.from, label: pct ? `${t.name} −${pct} %` : t.name };
+});
+const config = { currency, listPrice, tiers, min: MIN, max: MAX, wa: whatsappUrl("__MSG__") };
+---
+
+<!-- Al entrar en pantalla, el título llega desde la izquierda y el selector y las tarjetas suben
+     desenfocados, uno detrás de otro (ver "Packs" en global.css). Sin JS, todo está quieto y el
+     selector muestra el pack destacado. -->
+<section id="packs" class="scroll-mt-16 bg-ink-950 py-20 text-surface-900" data-stagger>
+  <div class="container-page">
+    <div data-pack-head>
+      <p class="eyebrow text-ink-300!">Packs · abono mensual</p>
+      <h2 class="section-title mt-3">Más videos, <span class="highlight">menos por video.</span></h2>
+      <p class="section-lead text-ink-300!">{packsNote}</p>
+    </div>
+
+    <!-- Selector: el visitante elige con un número que conoce, sus videos por mes. -->
+    <div data-pack-card style="--i: 0" data-pack-selector data-config={JSON.stringify(config)} class="mt-12 grid grid-cols-[minmax(0,1fr)] gap-8 rounded-2xl border border-surface-900/15 p-6 sm:p-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <div>
+        <label for="pack-videos" class="text-sm font-medium">¿Cuántos videos querés por mes?</label>
+        <p class="mt-2 font-mono text-5xl font-bold tabular-nums">
+          <span data-out="n">{start}</span><span class="ml-2 text-sm text-ink-300">videos</span>
+        </p>
+        <div class="relative mt-6 flex h-7 gap-1" aria-hidden="true">
+          {segments.map((s, i) => (
+            <span data-seg={i} style={`flex: ${s.width}`} class="min-w-0 truncate rounded-md bg-surface-900/10 px-1.5 sm:px-2 py-1.5 font-mono text-[10px] font-bold text-ink-300 transition-colors">
+              {s.label}
+            </span>
+          ))}
+          <i data-cab class="pointer-events-none absolute -top-2 -bottom-2 w-0.5 -translate-x-1/2 bg-surface-900 transition-[left] duration-150 before:absolute before:-top-1 before:-left-1.5 before:h-2.5 before:w-3.5 before:bg-surface-900 before:[clip-path:polygon(0_0,100%_0,100%_55%,50%_100%,0_55%)]" style={`left: ${((start - MIN) / (MAX - MIN)) * 100}%`}></i>
+        </div>
+        <input id="pack-videos" type="range" min={MIN} max={MAX} step="1" value={start} class="mt-5 w-full accent-brand-500" />
+      </div>
+      <div class="flex flex-col justify-center rounded-xl bg-surface-900 p-5 text-ink-950">
+        <p class="text-sm text-ink-700">Pagás por mes</p>
+        <p class="mt-1 font-mono text-4xl font-bold tabular-nums" data-out="total">{money(start * (sorted.find((p) => p.videos === start)!.price / start))}</p>
+        <p class="mt-2 text-sm text-ink-700" data-out="detail"></p>
+        <a data-out="wa" href={whatsappUrl(`Hola, me interesan ${start} videos por mes. ¿Cómo arrancamos?`)} class="btn-primary mt-5 w-full" target="_blank" rel="noopener">
+          <Icon name="whatsapp" /> Lo quiero
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+      {withSavings.map((pack, i) => (
+        <article style={`--i: ${i + 1}`} data-pack-card class:list={["relative flex flex-col rounded-2xl bg-surface-800 p-6 text-ink-950", pack.featured && "ring-4 ring-brand-500"]}>
+          {pack.featured && (
+            <span class="absolute -top-3 left-6 rounded-md bg-brand-500 px-2 py-0.5 font-mono text-xs font-bold text-ink-950 uppercase">El más elegido</span>
+          )}
+          <h3 class="text-xl font-extrabold tracking-[-0.02em] uppercase">{pack.name}</h3>
+          <p class="mt-4">
+            <span class="block h-5 font-mono text-sm text-ink-500 line-through">{pack.saved > 0 ? money(pack.full) : ""}</span>
+            <span class="block font-mono text-4xl font-bold tabular-nums">{money(pack.price)}</span>
+            <span class="text-sm text-ink-700">por mes · {money(pack.perVideo)} por video</span>
+          </p>
+          <span class:list={["mt-3 self-start rounded-full px-2.5 py-0.5 font-mono text-xs font-bold", pack.saved > 0 ? "bg-brand-500" : "bg-surface-700 text-ink-700"]}>
+            {pack.saved > 0 ? `Ahorrás ${money(pack.saved)} · −${pack.pct} %` : "Precio de lista"}
+          </span>
+          <ul class="mt-6 space-y-2.5 border-t border-line pt-6 text-sm">
+            {pack.points.map((p) => (
+              <li class="flex gap-3"><Icon name="check" class="mt-0.5 size-4 shrink-0 text-brand-600" />{p}</li>
+            ))}
+          </ul>
+          <div class="mt-auto pt-8">
+            <a
+              href={whatsappUrl(`Hola, me interesa el pack ${pack.name} (${pack.videos} videos por mes). ¿Cómo arrancamos?`)}
+              class:list={["w-full", pack.featured ? "btn-primary" : "btn-dark"]}
+              target="_blank"
+              rel="noopener"
+            >
+              <Icon name="whatsapp" /> Lo quiero
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  type Tier = { from: number; name: string; perVideo: number };
+  type Config = { currency: string; listPrice: number; tiers: Tier[]; min: number; max: number; wa: string };
+
+  const root = document.querySelector<HTMLElement>("[data-pack-selector]");
+  if (root) {
+    const cfg = JSON.parse(root.dataset.config!) as Config;
+    const input = root.querySelector<HTMLInputElement>("#pack-videos")!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const segs = [...root.querySelectorAll<HTMLElement>("[data-seg]")];
+    const cab = root.querySelector<HTMLElement>("[data-cab]")!;
+    const money = (n: number) => `${cfg.currency} ${Math.round(n).toLocaleString("es-AR")}`;
+
+    const update = () => {
+      const n = Number(input.value);
+      const idx = cfg.tiers.findLastIndex((t) => n >= t.from);
+      const tier = cfg.tiers[idx];
+      const total = n * tier.perVideo;
+      const saved = n * cfg.listPrice - total;
+      const isPack = idx > 0 && n === tier.from;
+      out("n").textContent = String(n);
+      out("total").textContent = money(total);
+      out("detail").textContent =
+        `${money(tier.perVideo)} por video · ` +
+        (isPack ? `pack ${tier.name}` : "a medida") +
+        (saved > 0 ? ` · ahorrás ${money(saved)}` : " · precio de lista");
+      const msg = isPack
+        ? `Hola, me interesa el pack ${tier.name} (${n} videos por mes). ¿Cómo arrancamos?`
+        : `Hola, me interesan ${n} videos por mes. ¿Cómo arrancamos?`;
+      out("wa").setAttribute("href", cfg.wa.replace("__MSG__", encodeURIComponent(msg)));
+      segs.forEach((s, i) => {
+        s.classList.toggle("bg-brand-500", i === idx);
+        s.classList.toggle("text-ink-950", i === idx);
+        s.classList.toggle("bg-surface-900/10", i !== idx);
+        s.classList.toggle("text-ink-300", i !== idx);
+      });
+      cab.style.left = `${((n - cfg.min) / (cfg.max - cfg.min)) * 100}%`;
+    };
+    input.addEventListener("input", update);
+    update();
+  }
+</script>

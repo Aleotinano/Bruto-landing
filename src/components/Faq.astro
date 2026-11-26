@@ -1,0 +1,31 @@
+---
+import Icon from "./Icon.astro";
+import { faq } from "../content/site";
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
+---
+
+<section id="faq" class="border-b border-line py-20">
+  <div class="container-page grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+    <div>
+      <p class="eyebrow">Preguntas</p>
+      <h2 class="section-title mt-2">Lo que nos preguntan antes de empezar</h2>
+    </div>
+    <div class="border-t border-line">
+      {faq.map((item) => (
+        <details class="group border-b border-line">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-medium [&::-webkit-details-marker]:hidden">
+            {item.q}
+            <Icon name="chevron-down" class="size-4 shrink-0 text-ink-500 transition-transform group-open:rotate-180" />
+          </summary>
+          <p class="pb-5 text-ink-700">{item.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</section>

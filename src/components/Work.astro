@@ -1,0 +1,21 @@
+---
+import VideoCard from "./VideoCard.astro";
+import { work } from "../content/site";
+---
+
+<!-- Trabajos: los videos de `work`, quietos. En el celular, una fila que se desliza; desde sm, grilla
+     (una sola fila de seis en computadora). Se reproducen al entrar en pantalla y se abren con sonido
+     al tocarlos (VideoCard). -->
+<section id="trabajos" class="scroll-mt-16 border-b border-line py-20">
+  <div class="container-page">
+    <p class="eyebrow">Trabajos</p>
+    <h2 class="section-title mt-3">Lo que <span class="highlight">editamos</span></h2>
+    <ul class="-mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
+      {work.map((item, i) => (
+        <li class="w-[42%] shrink-0 snap-start sm:w-auto">
+          <VideoCard item={item} tone={i} />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

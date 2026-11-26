@@ -1,0 +1,49 @@
+---
+import Icon from "./Icon.astro";
+import Logo from "./Logo.astro";
+import { nav } from "../content/site";
+import { whatsappUrl } from "../lib/whatsapp";
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-surface-900/85 backdrop-blur">
+  <div class="container-page flex h-16 items-center justify-between gap-4">
+    <a href="#" class="shrink-0" aria-label="Bruto Studio, inicio"><Logo /></a>
+
+    <nav aria-label="Secciones" class="hidden md:block">
+      <ul class="flex items-center gap-1 text-sm text-ink-700">
+        {nav.map((item) => (
+          <li><a href={item.href} class="rounded-md px-3 py-2 hover:bg-hover hover:text-ink-950">{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href={whatsappUrl()} class="btn-primary hidden py-2 sm:inline-flex" target="_blank" rel="noopener">
+        <Icon name="whatsapp" /> Escribinos
+      </a>
+      <details class="group relative md:hidden">
+        <summary class="flex size-10 cursor-pointer list-none items-center justify-center rounded-md hover:bg-hover [&::-webkit-details-marker]:hidden" aria-label="Abrir menú">
+          <Icon name="menu" class="size-5 group-open:hidden" />
+          <Icon name="x" class="hidden size-5 group-open:block" />
+        </summary>
+        <nav aria-label="Secciones" class="absolute right-0 mt-2 w-56 rounded-lg border border-line-strong bg-surface-800 p-2 shadow-lg">
+          <ul class="text-sm">
+            {nav.map((item) => (
+              <li><a href={item.href} data-close-menu class="block rounded-md px-3 py-2.5 hover:bg-hover">{item.label}</a></li>
+            ))}
+            <li class="mt-1 border-t border-line pt-2">
+              <a href={whatsappUrl()} class="btn-primary w-full" target="_blank" rel="noopener"><Icon name="whatsapp" /> Escribinos</a>
+            </li>
+          </ul>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Cerrar el menú mobile al elegir una sección.
+  document.querySelectorAll<HTMLAnchorElement>("[data-close-menu]").forEach((link) =>
+    link.addEventListener("click", () => link.closest("details")?.removeAttribute("open")),
+  );
+</script>

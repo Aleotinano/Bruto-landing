@@ -1,0 +1,86 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Results from "../components/Results.astro";
+import Work from "../components/Work.astro";
+import BeforeAfter from "../components/BeforeAfter.astro";
+import Services from "../components/Services.astro";
+import Packs from "../components/Packs.astro";
+import Process from "../components/Process.astro";
+import Faq from "../components/Faq.astro";
+import Contact from "../components/Contact.astro";
+import Footer from "../components/Footer.astro";
+import WhatsAppFloat from "../components/WhatsAppFloat.astro";
+import VideoLightbox from "../components/VideoLightbox.astro";
+---
+
+<Base title="Bruto · Edición de video corto">
+  <Header />
+  <main id="contenido">
+    <Hero />
+    <Work />
+    <Results />
+    <BeforeAfter />
+    <Services />
+    <Packs />
+    <Process />
+    <Faq />
+    <Contact />
+  </main>
+  <Footer />
+  <WhatsAppFloat />
+  <VideoLightbox />
+
+  <script>
+    // Los videos se bajan y reproducen solo cuando entran en pantalla (preload="none"), y se
+    // pausan al salir. Con movimiento reducido no arrancan solos.
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const videos = document.querySelectorAll<HTMLVideoElement>("video[data-inview-play]");
+    // Con el video en grande abierto (VideoLightbox) no arranca ninguno; al cerrarlo se vuelven a
+    // observar y el observer retoma los que están en pantalla.
+    const lightboxOpen = () => document.querySelector("dialog[data-video-lightbox][open]") !== null;
+    if (!reduce && "IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => (e.isIntersecting && !lightboxOpen() ? (e.target as HTMLVideoElement).play().catch(() => {}) : (e.target as HTMLVideoElement).pause())),
+        { threshold: 0.4 },
+      );
+      videos.forEach((v) => io.observe(v));
+      document.addEventListener("videolightbox:close", () =>
+        videos.forEach((v) => {
+          io.unobserve(v);
+          io.observe(v);
+        }),
+      );
+    } else {
+      videos.forEach((v) => (v.controls = true));
+    }
+
+    // El botón flotante de WhatsApp aparece en computadora al pasar el hero.
+    const hero = document.getElementById("inicio");
+    const float = document.querySelector<HTMLElement>("[data-whatsapp-float]");
+    if (hero && float && "IntersectionObserver" in window) {
+      new IntersectionObserver(([e]) => float.toggleAttribute("data-shown", !e.isIntersecting)).observe(hero);
+    } else {
+      float?.setAttribute("data-shown", "");
+    }
+
+    // Cada sección aparece con un fade suave al entrar en pantalla (ver global.css).
+    if (!reduce && "IntersectionObserver" in window) {
+      const sections = document.querySelectorAll<HTMLElement>("main > section:not(#inicio)");
+      const reveal = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            e.target.classList.add("is-visible");
+            reveal.unobserve(e.target);
+          }),
+        { rootMargin: "0px 0px -10% 0px" },
+      );
+      sections.forEach((s) => {
+        s.dataset.reveal = "";
+        reveal.observe(s);
+      });
+    }
+  </script>
+</Base>

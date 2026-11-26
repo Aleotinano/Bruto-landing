@@ -1,0 +1,78 @@
+---
+import Icon from "./Icon.astro";
+import type { WorkItem } from "../content/site";
+
+interface Props {
+  item: WorkItem;
+  tone?: number;
+  class?: string;
+  /** Solo la portada, sin bajar el video (las columnas del inicio); tocarla lo abre igual. */
+  still?: boolean;
+}
+const { item, tone = 0, class: className = "", still = false } = Astro.props;
+const label = item.client ? `${item.title}, ${item.client}` : item.title;
+// Sin video todavía: una tarjeta neutra con el título, en grises que se alternan.
+const placeholder = ["bg-surface-600", "bg-surface-500", "bg-surface-700"][tone % 3];
+---
+
+<figure class:list={["group relative aspect-[9/16] overflow-hidden rounded-xl", className]}>
+  {
+    item.src && !(still && item.poster) ? (
+      <video
+        class="absolute inset-0 size-full bg-player object-cover"
+        src={item.src}
+        poster={item.poster}
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-inview-play
+        aria-hidden="true"
+        tabindex="-1"
+      />
+    ) : item.poster ? (
+      <div class="absolute inset-0 flex items-center justify-center">
+        <img src={item.poster} alt="" loading="lazy" class="absolute inset-0 size-full object-cover" />
+        <span class="relative flex size-11 items-center justify-center rounded-full bg-surface-900/85 text-ink-950 transition-transform group-hover:scale-110">
+          <Icon name="play" class="size-4 translate-x-px" />
+        </span>
+      </div>
+    ) : (
+      <div class:list={["absolute inset-0 flex items-center justify-center", placeholder]}>
+        <span class="flex size-11 items-center justify-center rounded-full bg-surface-900/85 text-ink-950 transition-transform group-hover:scale-110">
+          <Icon name="play" class="size-4 translate-x-px" />
+        </span>
+      </div>
+    )
+  }
+  <figcaption class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-3 pt-10 text-left text-white">
+    <p class="text-xs font-medium leading-tight sm:text-sm">{item.title}</p>
+    {(item.client || item.views) && (
+      <p class="mt-0.5 flex items-center justify-between gap-2 text-xs text-white/75">
+        <span>{item.client}</span>
+        {item.views && <span>{item.views} vistas</span>}
+      </p>
+    )}
+  </figcaption>
+  {
+    // Con video, la tarjeta entera lo abre en grande y con sonido (VideoLightbox). Gana sobre el
+    // link a la red: nunca dos controles encimados.
+    item.src ? (
+      <>
+        <span class="pointer-events-none absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white transition-transform group-hover:scale-110">
+          <Icon name="speaker" class="size-3.5" />
+        </span>
+        <button
+          type="button"
+          class="absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-white focus-visible:-outline-offset-4"
+          aria-label={`Ver «${label}» con sonido`}
+          data-lightbox-src={item.src}
+          data-lightbox-poster={item.poster}
+          data-lightbox-title={label}
+        />
+      </>
+    ) : (
+      item.link && <a href={item.link} target="_blank" rel="noopener" class="absolute inset-0" aria-label={`Ver ${item.title} en la red`}></a>
+    )
+  }
+</figure>

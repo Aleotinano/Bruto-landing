@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 960" width="540" height="960">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#7c2d12"/></linearGradient>
+<radialGradient id="l" cx="0.5" cy="0.62" r="0.45"><stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect width="540" height="960" fill="url(#g)"/>
+<rect width="540" height="960" fill="url(#l)"/>
+<circle cx="270" cy="560" r="92" fill="#000" fill-opacity="0.28"/>
+<path d="M118 960c0-120 68-250 152-250s152 130 152 250z" fill="#000" fill-opacity="0.28"/>
+<text y="210" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="54" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke" stroke-linejoin="round"><tspan x="270" dy="0">3 errores</tspan><tspan x="270" dy="66">al abrir</tspan><tspan x="270" dy="66">tu local</tspan></text>
+</svg>

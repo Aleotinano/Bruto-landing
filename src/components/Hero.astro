@@ -1,0 +1,254 @@
+---
+import Icon from "./Icon.astro";
+import VideoCard from "./VideoCard.astro";
+import { currency, hero, packs, results, work } from "../content/site";
+import { whatsappUrl } from "../lib/whatsapp";
+
+// El precio por video más bajo de los packs, con el mismo formato que Packs.astro.
+const minPerVideo = Math.min(...packs.map((pack) => pack.price / pack.videos));
+const fromPrice = `${currency} ${minPerVideo.toLocaleString("es-AR", { maximumFractionDigits: 2 })}`;
+
+// La prueba: el caso real de Resultados (si tiene números). En el celular va debajo de los botones;
+// en computadora, como ficha al lado del video.
+const caseValue = results.metrics[0]?.value ?? "";
+const proof = caseValue ? `${caseValue} ${results.metrics[0].label} de una cuenta nueva` : "";
+
+// Un solo video protagonista. El propio (hero.video) cuando esté; mientras tanto, el trabajo
+// destacado de `work`, con sus números si los tiene (nada inventado: sin dato, sin ficha).
+const own = hero.video.src ? hero.video : null;
+const featured = work.find((w) => w.featured) ?? work[0];
+const chapters = hero.video.chapters;
+// Sin video propio, la tira tiene medidas fijas y el cabezal se detiene en el clip naranja (el
+// tercero, "Gancho"), como en el logo. Con video propio, el ancho de cada clip sale de su duración.
+const fallbackFlex = [3, 2, 4, 3, 2];
+const MAIN = 2;
+---
+
+<section id="inicio" class="overflow-hidden border-b border-line lg:flex lg:min-h-[calc(100svh-4rem-1px)] lg:flex-col">
+  <div class="hero-grid container-page grid grid-cols-[minmax(0,1fr)] items-center gap-10 pt-12 pb-14 lg:max-w-none lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14 lg:py-10">
+    <div class="lg:py-6">
+      <p class="eyebrow">{hero.eyebrow}</p>
+      <h1 class="mt-5 text-[2.6rem] leading-[0.95] font-extrabold tracking-[-0.035em] text-balance uppercase sm:text-6xl lg:text-5xl 2xl:text-6xl">
+        {hero.title} <span class="highlight">{hero.highlight}</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-lg text-ink-700 text-pretty sm:text-xl lg:text-lg">{hero.lead}</p>
+      <div class="mt-7 flex flex-wrap items-center gap-3">
+        <a href={whatsappUrl()} class="btn-primary px-6 py-3.5" target="_blank" rel="noopener">
+          <Icon name="whatsapp" /> {hero.cta}
+        </a>
+        <a href="#packs" class="btn-dark px-6 py-3.5">{hero.ctaPrices}</a>
+      </div>
+      <p class="mt-4 font-mono text-xs font-bold tracking-wide text-ink-700 uppercase">
+        {hero.trial} · {hero.priceFrom} {fromPrice} {hero.priceNote}
+      </p>
+      {proof && (
+        <a href="#resultados" class="mt-6 flex max-w-md items-center gap-4 rounded-xl border border-line-field bg-surface-800 p-3 pr-4 transition-colors hover:border-line-strong lg:hidden">
+          <svg viewBox="0 0 60 28" class="h-10 w-20 shrink-0" aria-hidden="true">
+            <path d="M0 27h20l4-3 3 2 4-9 3 1 4-6 4-12 4 9 3 8h9" fill="none" class="stroke-brand-500" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+          </svg>
+          <span class="text-sm leading-snug"><strong class="font-medium">{proof}.</strong> <span class="text-ink-700">Ver el caso</span></span>
+        </a>
+      )}
+    </div>
+
+    <!-- El video protagonista, con la línea de tiempo de la marca debajo: con el video propio, el
+         cabezal es su barra de progreso y cada clip, un capítulo. -->
+    <div class="flex flex-col items-center justify-center">
+      <div class="relative w-[65%] max-w-xs sm:w-1/2 lg:w-auto lg:max-w-none" data-hero-stage>
+        <div class="hero-video relative">
+          {own ? (
+            <figure class="relative aspect-[9/16] w-full overflow-hidden rounded-2xl bg-player">
+              <video
+                class="absolute inset-0 size-full object-cover"
+                src={own.src}
+                poster={own.poster || undefined}
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                data-inview-play
+                data-hero-video
+                aria-label="Cómo trabajamos en Bruto"
+              />
+              <button
+                type="button"
+                class="btn-primary absolute right-3 bottom-3 py-2 text-sm"
+                data-lightbox-src={own.src}
+                data-lightbox-poster={own.poster || undefined}
+                data-lightbox-title="Cómo trabajamos en Bruto"
+              >
+                <Icon name="speaker" class="size-4" /> Ver con sonido
+              </button>
+            </figure>
+          ) : (
+            <VideoCard item={featured} class="rounded-2xl" />
+          )}
+
+          <!-- Fichas: números quietos alrededor del video (solo en computadora). -->
+          {caseValue && (
+            <a href="#resultados" class="hero-chip absolute top-[58%] right-[calc(100%-1.5rem)] hidden w-44 lg:block">
+              <span class="block font-mono text-2xl font-bold">{caseValue}</span>
+              <span class="block text-xs leading-snug text-ink-700">visitas en el primer mes de una cuenta nueva · <span class="underline decoration-brand-500 decoration-2 underline-offset-2">ver el caso</span></span>
+            </a>
+          )}
+          {!own && featured.views && (
+            <span class="hero-chip absolute top-[14%] left-[calc(100%-1.5rem)] hidden lg:block">
+              <span class="block font-mono text-2xl font-bold">{featured.views}</span>
+              <span class="block text-xs text-ink-700">visitas</span>
+            </span>
+          )}
+          {!own && featured.retention && (
+            <span class="hero-chip absolute top-[40%] left-[calc(100%-1.5rem)] hidden lg:block">
+              <span class="block font-mono text-2xl font-bold">{featured.retention}</span>
+              <span class="block text-xs text-ink-700">lo miran hasta el final</span>
+            </span>
+          )}
+        </div>
+
+        <div class="relative mt-5 flex h-6 w-0 min-w-full gap-1" data-hero-track aria-hidden={own ? undefined : "true"}>
+          {chapters.map((ch, i) => (
+            own ? (
+              <button
+                type="button"
+                data-chapter={i}
+                data-at={ch.at}
+                style={`flex: 1`}
+                class="min-w-0 cursor-pointer truncate rounded-md bg-ink-950 px-1.5 font-mono text-[10px] font-bold text-surface-900 transition-colors hover:bg-ink-700"
+                aria-label={`Ir a «${ch.label}»`}
+              >
+                {ch.label}
+              </button>
+            ) : (
+              <span style={`flex: ${fallbackFlex[i] ?? 2}`} class:list={["flex min-w-0 items-center truncate rounded-md px-1.5 font-mono text-[10px] font-bold", i === MAIN ? "bg-brand-500 text-ink-950" : "bg-ink-950 text-surface-900"]}>
+                {ch.label}
+              </span>
+            )
+          ))}
+          <i
+            data-hero-cab
+            class:list={["pointer-events-none absolute -top-2 -bottom-2 w-0.5 -translate-x-1/2 bg-ink-950 before:absolute before:-top-1 before:-left-1.5 before:h-2.5 before:w-3.5 before:bg-ink-950 before:[clip-path:polygon(0_0,100%_0,100%_55%,50%_100%,0_55%)]", !own && "hero-cab--auto"]}
+            style={own ? "left: 0" : `--stop: ${(fallbackFlex.slice(0, MAIN).reduce((a, b) => a + b, 0) + fallbackFlex[MAIN] * 0.6) / fallbackFlex.reduce((a, b) => a + b, 0) * 100}%`}
+          ></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* En pantallas grandes el texto queda alineado con el logo y el video ocupa el resto del ancho,
+     hasta el margen de la página a la derecha. */
+  @media (min-width: 64rem) {
+    .hero-grid {
+      padding-left: max(2.5rem, calc((100vw - 1440px) / 2 + 2.5rem));
+      padding-right: max(2.5rem, calc((100vw - 1440px) / 4 + 2.5rem));
+    }
+    /* El video se mide por el alto: entra entero con la tira debajo, en cualquier pantalla. */
+    .hero-video {
+      height: min(calc(100svh - 4rem - 9rem), 46rem);
+      aspect-ratio: 9 / 16;
+    }
+    .hero-video > :global(figure) {
+      height: 100%;
+      width: auto;
+    }
+  }
+
+  /* Las fichas: el borde de tinta y la sombra dura del manual. */
+  .hero-chip {
+    z-index: 1;
+    border: 2px solid var(--color-ink-950);
+    border-radius: 0.75rem;
+    background: var(--color-surface-800);
+    padding: 0.625rem 0.875rem;
+    box-shadow: 4px 4px 0 var(--color-ink-950);
+  }
+
+  /* Sin video propio, el cabezal recorre la tira una vez y se detiene en el clip naranja. */
+  .hero-cab--auto {
+    left: var(--stop);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-cab--auto {
+      animation: hero-play 1.8s cubic-bezier(0.45, 0, 0.2, 1) 0.5s both;
+    }
+  }
+  @keyframes hero-play {
+    from {
+      left: 0;
+    }
+  }
+</style>
+
+<script>
+  // Con el video propio, la tira es su barra de progreso: el ancho de cada clip sale de la duración
+  // de su capítulo, el cabezal sigue al video y el capítulo actual se pinta de naranja. Tocar un
+  // clip salta a ese momento.
+  const video = document.querySelector<HTMLVideoElement>("[data-hero-video]");
+  const track = document.querySelector<HTMLElement>("[data-hero-track]");
+  const cab = document.querySelector<HTMLElement>("[data-hero-cab]");
+  if (video && track && cab) {
+    const clips = [...track.querySelectorAll<HTMLButtonElement>("[data-chapter]")];
+    const starts = clips.map((c) => Number(c.dataset.at) || 0);
+    let frame = 0;
+
+    const layout = () => {
+      if (!video.duration) return;
+      clips.forEach((c, i) => {
+        const end = starts[i + 1] ?? video.duration;
+        c.style.flex = String(Math.max(end - starts[i], 0.5));
+      });
+    };
+    const paint = () => {
+      const d = video.duration || 1;
+      const t = video.currentTime;
+      cab.style.left = `${(t / d) * 100}%`;
+      const current = starts.findLastIndex((s) => t >= s);
+      clips.forEach((c, i) => {
+        c.classList.toggle("bg-brand-500", i === current);
+        c.classList.toggle("text-ink-950", i === current);
+        c.classList.toggle("bg-ink-950", i !== current);
+        c.classList.toggle("text-surface-900", i !== current);
+      });
+    };
+    const loop = () => {
+      paint();
+      if (!video.paused) frame = requestAnimationFrame(loop);
+    };
+
+    video.addEventListener("loadedmetadata", () => {
+      layout();
+      paint();
+    });
+    video.addEventListener("play", () => {
+      cancelAnimationFrame(frame);
+      loop();
+    });
+    video.addEventListener("pause", paint);
+    // Por si el navegador no está dibujando (pestaña en segundo plano), el cabezal igual avanza.
+    video.addEventListener("timeupdate", paint);
+    video.addEventListener("seeked", paint);
+    clips.forEach((c, i) =>
+      c.addEventListener("click", () => {
+        video.currentTime = starts[i];
+        video.play().catch(() => {});
+      }),
+    );
+    if (video.readyState >= 1) {
+      layout();
+      paint();
+    }
+
+    // El observer de index.astro lo arranca al entrar en pantalla, pero el video del inicio ya está
+    // en pantalla al cargar y su alto llega con el CSS: por las dudas, se arranca al tener datos
+    // (sin sonido, salvo movimiento reducido o con el video grande abierto).
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const tryPlay = () => {
+      const r = video.getBoundingClientRect();
+      const lightbox = document.querySelector("dialog[data-video-lightbox][open]");
+      if (!reduce && !lightbox && video.paused && r.bottom > 0 && r.top < innerHeight) video.play().catch(() => {});
+    };
+    video.addEventListener("loadeddata", tryPlay);
+    window.addEventListener("load", tryPlay);
+  }
+</script>

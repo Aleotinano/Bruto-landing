@@ -1,0 +1,20 @@
+---
+import { process } from "../content/site";
+---
+
+<section id="proceso" class="border-b border-line py-20">
+  <div class="container-page">
+    <p class="eyebrow">Cómo trabajamos</p>
+    <h2 class="section-title mt-2">Del primer mensaje al video publicado</h2>
+
+    <ol class="mt-10 grid border-t border-line sm:grid-cols-2 lg:grid-cols-4">
+      {process.map((step, i) => (
+        <li class:list={["py-6 sm:pr-6", i > 0 && "border-t border-line sm:border-t-0", i % 2 === 1 && "sm:border-l sm:pl-6", i >= 2 && "sm:border-t lg:border-t-0", i === 2 && "lg:border-l lg:pl-6"]}>
+          <span class="flex size-8 items-center justify-center rounded-full border border-line-field text-sm font-medium tabular-nums">{i + 1}</span>
+          <h3 class="mt-4 font-medium">{step.title}</h3>
+          <p class="mt-2 text-sm text-ink-700">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

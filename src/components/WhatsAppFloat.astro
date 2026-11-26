@@ -1,0 +1,17 @@
+---
+import Icon from "./Icon.astro";
+import { whatsappUrl } from "../lib/whatsapp";
+---
+
+<!-- En mobile está siempre. En computadora aparece recién al pasar el hero, para que la
+     primera pantalla quede limpia (el script de index.astro le pone data-shown). -->
+<a
+  href={whatsappUrl()}
+  target="_blank"
+  rel="noopener"
+  aria-label="Escribinos por WhatsApp"
+  data-whatsapp-float
+  class="fixed right-4 bottom-4 z-40 flex size-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-lg transition-[opacity,translate,scale] duration-300 hover:scale-105 md:right-6 md:bottom-6 md:pointer-events-none md:translate-y-3 md:opacity-0 md:data-shown:pointer-events-auto md:data-shown:translate-y-0 md:data-shown:opacity-100"
+>
+  <Icon name="whatsapp" class="size-7" />
+</a>
